@@ -30,8 +30,6 @@ module Oracul
         ::Process.setsid
         exit if fork
 
-        @pid_file ||= './goliath.pid'
-        @log_file ||= ::File.expand_path('goliath.log')
         store_pid(::Process.pid)
 
         $0 = ::Oracul::APP_NAME
@@ -39,10 +37,8 @@ module Oracul
         ::Dir.chdir '/'
         ::File.umask(0000)
 
-        stdout_log_file = "#{::File.dirname(@log_file)}/#{::File.basename(@log_file)}_stdout.log"
-
         ::STDIN.reopen("/dev/null")
-        ::STDOUT.reopen(stdout_log_file, "a")
+        ::STDOUT.reopen(@log_file || "/dev/null", "a")
         ::STDERR.reopen(STDOUT)
         ::STDOUT.sync = true
         ::STDERR.sync = true

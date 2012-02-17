@@ -1,6 +1,5 @@
 # encoding: utf-8
 require 'irb'
-require 'irb/completion'
 
 module Oracul
   
@@ -18,6 +17,41 @@ module Oracul
       runner.run
 
     end # self.start
+
+    def self.irb_console
+
+      $0 = ::Oracul::APP_NAME
+
+      ::IRB.setup(nil)
+
+      ::IRB.conf[:PROMPT][:DEFAULT] = {
+        :PROMPT_I => "#{$0} :%03n:%i> ",
+        :PROMPT_N => "#{$0} :%03n:%i> ",
+        :PROMPT_S => "#{$0} :%03n:%i%l ",
+        :PROMPT_C => "#{$0} :%03n:%i* ",
+        :RETURN => "=> %s\n"
+      }
+
+      ::IRB.conf[:PROMPT_MODE] = :DEFAULT
+
+      irb = ::IRB::Irb.new
+
+      ::IRB.conf[:IRB_RC].call(irb.context) if ::IRB.conf[:IRB_RC]
+      ::IRB.conf[:MAIN_CONTEXT] = irb.context
+
+      trap("SIGINT") do
+        irb.signal_handle
+      end
+
+      begin
+        catch(:IRB_EXIT) do
+          irb.eval_input
+        end
+      ensure
+        ::IRB.irb_at_exit
+      end
+
+    end # self.irb_console
 
     def run
       
@@ -45,7 +79,7 @@ module Oracul
 
       server.start do        
         
-        ::IRB.start        
+        self.class.irb_console
         exit
 
       end

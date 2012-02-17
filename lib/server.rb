@@ -44,6 +44,8 @@ module Oracul
         ::STDIN.reopen("/dev/null")
         ::STDOUT.reopen(stdout_log_file, "a")
         ::STDERR.reopen(STDOUT)
+        ::STDOUT.sync = true
+        ::STDERR.sync = true
 
         run_server
 

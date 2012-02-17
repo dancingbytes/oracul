@@ -49,7 +49,7 @@ module Oracul
     end # config
 
     def plugins
-      Oracul::Goliath::Server.config || {}
+      Oracul::Goliath::Server.plugins || {}
     end # plugins    
 
     private

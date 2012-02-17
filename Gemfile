@@ -2,4 +2,6 @@ source 'http://rubygems.org'
 
 gem 'goliath'
 gem 'unicode'
-# gem 'fiber_pool', '1.0.0'
+gem 'dbf' # :git => git://github.com/infused/dbf.git
+gem 'em-mongo'
+gem 'bson_ext'

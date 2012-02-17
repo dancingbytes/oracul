@@ -5,6 +5,8 @@ require 'bundler'
 require 'goliath/api'
 require 'goliath/runner'
 
+require 'em-mongo'
+
 Dir[
   './lib/*.rb', 
   './app/**/*.rb'
@@ -13,6 +15,8 @@ Dir[
 require File.expand_path('../routes', __FILE__)
 
 module Oracul
+
+  APP_NAME = "Oracul"
 
   class << self
 
@@ -27,6 +31,26 @@ module Oracul
     def pid_file
       @pid_file ||= get_or_create(root, "tmp", "pids", "app.pid")
     end # pid_file
+
+    def status
+      env["status"] || {}
+    end # status
+
+    def env
+      Thread.current[::Goliath::Constants::GOLIATH_ENV]
+    end # env
+
+    def options
+      Oracul::Goliath::Server.options || {}
+    end # options
+    
+    def config
+      Oracul::Goliath::Server.config || {}
+    end # config
+
+    def plugins
+      Oracul::Goliath::Server.config || {}
+    end # plugins    
 
     private
 

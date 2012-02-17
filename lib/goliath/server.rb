@@ -1,21 +1,33 @@
 # encoding: utf-8
-module Goliath
+module Oracul
 
-  class Server
+  module Goliath
 
-    def load_config(file = nil)
-      
-      file ||= File.join(config_dir, "#{Goliath.env}.rb")
-      return unless File.exists?(file)
+    class Server < ::Goliath::Server
 
-      eval(IO.read(file))
+      class << self
+        attr_accessor :config, :plugins, :options
+      end # class << self
 
-    end # load_config
+      def load_config(file = nil)
+        
+        file ||= ::File.join(config_dir, "#{::Goliath.env}.rb")
+        return unless ::File.exists?(file)
 
-    def config_dir
-      File.join(::Oracul.root, "config", "environments")
-    end # config_dir
+        instance_eval(::IO.read(file), file)
 
-  end # Server
+        self.class.config   = config
+        self.class.plugins  = plugins
+        self.class.options  = options
 
-end # Goliath
+      end # load_config
+
+      def config_dir
+        File.join(::Oracul.root, "config", "environments")
+      end # config_dir
+
+    end # Server
+
+  end # Goliath
+
+end # Oracul

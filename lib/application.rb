@@ -8,11 +8,10 @@ module Oracul
       def initialize!
         
         options_parser.parse!(ARGV)
-        if @options[:start]
-          start
-        elsif @options[:stop]
-          stop
-        end  
+        return start    if @options[:start] == true          
+        return stop     if @options[:stop]  == true
+        return console  if @options[:console]  == true
+        puts options_parser.help
 
       end # initialize!
 
@@ -24,8 +23,7 @@ module Oracul
           puts "Already running"
         else
 
-          init_connection
-          init_goliath
+          ::Oracul::Server.start(@options[:env])
 
           res = false
 
@@ -37,7 +35,6 @@ module Oracul
               sleep(1)
             end  
           }
-
 
           if res
             puts "Process [pid #{get_pid}] was successfully started."
@@ -69,11 +66,16 @@ module Oracul
 
       end # stop
 
+      def console
+        ::Oracul::Console.start(@options[:env])
+      end # console
+
       def options_parser
 
         @options ||= {
           :env => :production
         }
+
         @options_parser ||= ::OptionParser.new do |opts|
 
           opts.banner = "Usage: oracul [options]"
@@ -83,6 +85,7 @@ module Oracul
 
           opts.on('-r', '--start', "Start program") { |val| @options[:start] = val }
           opts.on('-s', '--stop',  "Stop program") { |val| @options[:stop] = val }
+          opts.on('-c', '--console',  "Start console") { |val| @options[:console] = val }
           opts.on('-e', '--environment NAME', "Set the execution environment (prod, dev or test) (default: #{@options[:env]})") { |val| @options[:env] = val }
           opts.on('-h', '--help',  'Display help message') { puts opts; exit }
 
@@ -153,22 +156,6 @@ module Oracul
         end
 
       end # stop_process
-
-      def init_connection
-      end # init_connection  
-
-      def init_goliath
-
-        runner = ::Goliath::Runner.new([], nil)
-        ::Goliath.env = @options[:env]
-        runner.log_file = ::Oracul.log_file
-        runner.pid_file = ::Oracul.pid_file
-        runner.daemonize = true
-        runner.api = ::Oracul::Routes.new
-        runner.app = ::Goliath::Rack::Builder.build(::Oracul::Routes, runner.api)
-        runner.run("oracul")
-
-      end # init_goliath
 
     end # class << self
 

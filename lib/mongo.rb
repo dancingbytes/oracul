@@ -1,4 +1,6 @@
 # encoding: utf-8
+require 'em-mongo'
+
 class Mongo
 
   class << self

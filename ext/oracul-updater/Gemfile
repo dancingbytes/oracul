@@ -1,0 +1,5 @@
+source 'http://rubygems.org'
+
+gem 'unicode'
+gem 'dbf', :git => 'git://github.com/infused/dbf.git'
+gem 'mongoid', '~> 3.0.0.rc'

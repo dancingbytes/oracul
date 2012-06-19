@@ -12,65 +12,65 @@ require File.expand_path('../console', 				__FILE__)
 require File.expand_path('../server', 				__FILE__)
 require File.expand_path('../application', 		__FILE__)
 
-Dir[
-  './lib/*.rb', 
-  './app/models/*.rb',
-  './app/actions/*.rb'
-].each {|f| require f }
-
-require File.expand_path('../../config/routes', __FILE__)
-
 module Oracul
 
   APP_NAME = "Oracul"
 
-  class << self
+  extend self
 
-    def root
-      @root ||= ::File.join(::File.dirname(__FILE__), "../")
-    end # root
+  def root
+    @root ||= ::File.join(::File.dirname(__FILE__), "../")
+  end # root
 
-    def log_file
-      @log_file ||= get_or_create(root, "logs", "#{::Goliath.env}.log")
-    end # log_file
+  def log_file
+    @log_file ||= get_or_create(root, "logs", "#{::Goliath.env}.log")
+  end # log_file
 
-    def pid_file
-      @pid_file ||= get_or_create(root, "tmp", "pids", "app.pid")
-    end # pid_file
+  def pid_file
+    @pid_file ||= get_or_create(root, "tmp", "pids", "app.pid")
+  end # pid_file
 
-    def status
-      env["status"] || {}
-    end # status
+  def status
+    env["status"] || {}
+  end # status
 
-    def env
-      Thread.current[::Goliath::Constants::GOLIATH_ENV]
-    end # env
+  def env
+    Thread.current[::Goliath::Constants::GOLIATH_ENV]
+  end # env
 
-    def options
-      Oracul::Goliath::Server.options || {}
-    end # options
-    
-    def config
-      Oracul::Goliath::Server.config || {}
-    end # config
+  def options
+    Oracul::Goliath::Server.options || {}
+  end # options
 
-    def plugins
-      Oracul::Goliath::Server.plugins || {}
-    end # plugins    
+  def config
+    Oracul::Goliath::Server.config || {}
+  end # config
 
-    private
+  def plugins
+    Oracul::Goliath::Server.plugins || {}
+  end # plugins
 
-    def get_or_create(*args)
+  private
 
-      if last = args.pop
-        dir = File.join(*args)
-        ::FileUtils.mkdir_p(dir, :mode => 0755) unless ::FileTest.directory?(dir)
-        args << last
-      end
-      ::File.join(*args)
+  def get_or_create(*args)
 
-    end # get_or_create
+    if last = args.pop
+      dir = File.join(*args)
+      ::FileUtils.mkdir_p(dir, :mode => 0755) unless ::FileTest.directory?(dir)
+      args << last
+    end
 
-  end # class << self
+    ::File.join(*args)
+
+  end # get_or_create
 
 end # Oracul
+
+Dir[
+  './lib/*.rb',
+  './app/models/*.rb'
+].each {|f| require f }
+
+require File.expand_path('../../app/application', __FILE__)
+
+::Oracul::Application.initialize!

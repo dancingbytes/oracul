@@ -2,18 +2,18 @@
 require 'irb'
 
 module Oracul
-  
+
   class Console < ::Goliath::Runner
 
     def self.start(env)
 
       runner = new([], nil)
-        
+
       ::Goliath.env = env
-        
-      runner.api = ::Oracul::Routes.new
-      runner.app = ::Goliath::Rack::Builder.build(::Oracul::Routes, runner.api)
-        
+
+      runner.api = ::Application.new
+      runner.app = ::Goliath::Rack::Builder.build(::Application, runner.api)
+
       runner.run
 
     end # self.start
@@ -54,14 +54,14 @@ module Oracul
     end # self.irb_console
 
     def run
-      
-      unless ::Goliath.test?
+
+      unless ::Goliath.env?(:test)
         $LOADED_FEATURES.unshift(::File.basename($0))
         ::Dir.chdir(::File.expand_path(::File.dirname($0)))
       end
 
       run_server
-      
+
     end # run
 
     private
@@ -77,15 +77,15 @@ module Oracul
       server.plugins = @plugins || []
       server.options = @server_options
 
-      server.start do        
-        
+      server.start do
+
         self.class.irb_console
         exit
 
       end
-     
+
     end # run_server
 
   end # Console
-  
+
 end # Oracul

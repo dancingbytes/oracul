@@ -1,26 +1,26 @@
 # encoding: utf-8
 module Oracul
-  
+
   class Server < ::Goliath::Runner
 
     def self.start(env)
 
       runner = new([], nil)
-      
+
       ::Goliath.env = env
-        
+
       runner.log_file = ::Oracul.log_file
       runner.pid_file = ::Oracul.pid_file
-      runner.api      = ::Oracul::Routes.new
-      runner.app      = ::Goliath::Rack::Builder.build(::Oracul::Routes, runner.api)
-        
+      runner.api      = ::Application.new
+      runner.app      = ::Goliath::Rack::Builder.build(::Application, runner.api)
+
       runner.run
 
     end # self.start
 
     def run
 
-      unless ::Goliath.test?
+      unless ::Goliath.env?(:test)
         $LOADED_FEATURES.unshift(::File.basename($0))
         Dir.chdir(::File.expand_path(::File.dirname($0)))
       end
@@ -46,7 +46,7 @@ module Oracul
         run_server
 
       end # fork
-      
+
     end # run
 
     private
@@ -72,4 +72,4 @@ module Oracul
 
   end # Server
 
-end # Oracul 
+end # Oracul

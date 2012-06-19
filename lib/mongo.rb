@@ -1,18 +1,13 @@
 # encoding: utf-8
 require 'em-mongo'
+require 'em-synchrony/em-mongo'
 
-class Mongo
+module Mongo
 
-  class << self
+  extend self
 
-    def db
-      @conn ||= ::Oracul.config['mongo']
-    end # db
-
-    def areas
-      @areas ||= db.collection('areas')
-    end # areas
-
-  end # class << self
+  def conn
+    @conn ||= ::Oracul.config['mongo']
+  end # conn
 
 end # Mongo

@@ -10,7 +10,7 @@ module Oracul
       end # class << self
 
       def load_config(file = nil)
-        
+
         file ||= ::File.join(config_dir, "#{::Goliath.env}.rb")
         return unless ::File.exists?(file)
 
@@ -23,7 +23,7 @@ module Oracul
       end # load_config
 
       def config_dir
-        File.join(::Oracul.root, "config", "environments")
+        File.join(::Oracul.root, "environments")
       end # config_dir
 
     end # Server

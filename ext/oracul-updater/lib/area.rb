@@ -164,6 +164,30 @@ module OraculUpdater
       name: "area_indx_3"
     })
 
+    index({
+
+      version:      1,
+      outdated:     1,
+      place_type:   1
+
+    }, {
+      name: "area_indx_4"
+    })
+
+    index({
+
+      version:      1,
+      region_code:  1,
+      district_code:1,
+      area_code:    1,
+      village_code: 1,
+      street_code:  1,
+      outdated:     1,
+
+    }, {
+      name: "area_indx_5"
+    })
+
     index({ version:    1 })
     index({ outdated:   1 })
     index({ abbr_code:  1 })
@@ -234,6 +258,20 @@ module OraculUpdater
       house_only
 
     } # houses_for
+
+    def add_keywords(words)
+
+      return if self.locality > 5
+      return if words.blank?
+
+      str = ""
+      add_keywords = words.downcase.split(//).inject([]) { |arr, word|
+        arr << (str += word)
+      }
+      self.update_attribute(:keywords, self.keywords.concat(add_keywords))
+      nil
+
+    end # add_keywords
 
     private
 

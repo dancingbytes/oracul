@@ -13,10 +13,14 @@ require File.expand_path('../lib/area',   __FILE__)
 require File.expand_path('../lib/kladr',  __FILE__)
 require File.expand_path('../lib/ips',    __FILE__)
 
-OraculUpdater::Area.create_indexes
+puts "Create indexes..."
+OraculUpdater::Area.with(safe: true).create_indexes
+puts "Done."
 
 # arj e BASE.ARJ
 
+puts
+puts "Convertion..."
 kladr = ::OraculUpdater::Kladr.new(1)
 kladr.
   clear_all.
@@ -29,3 +33,4 @@ kladr.
   refresh_area_locations
 
 puts
+puts "Done."

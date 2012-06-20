@@ -444,7 +444,7 @@ module OraculUpdater
 
         city_region, city_district, city_area = nil, nil, nil
 
-        city_region = ::Area.
+        city_region = ::OraculUpdater::Area.
           by_version(@version).
           by_region(area.region_code).
           by_district(0).
@@ -544,6 +544,9 @@ module OraculUpdater
           :city_name      => area.name,
           :city_postcodes => postcodes
         })
+
+        # Для населенных пунктов в keywords добавим данные о районе (для более точного поиска)
+        area.add_keywords(area.district)
 
         counter += 1
         progress = sprintf("%0.4f", (counter.to_f / total)*100)

@@ -6,9 +6,8 @@ require 'goliath/api'
 require 'goliath/runner'
 
 require File.expand_path('../version', 		    __FILE__)
-require File.expand_path('../ext/string', 		__FILE__)
 require File.expand_path('../goliath/server', __FILE__)
-require File.expand_path('../console', 				__FILE__)
+require File.expand_path('../console',        __FILE__)
 require File.expand_path('../server', 				__FILE__)
 require File.expand_path('../application', 		__FILE__)
 

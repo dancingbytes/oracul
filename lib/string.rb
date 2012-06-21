@@ -19,6 +19,10 @@ module StringExt
     self.replace self.clean_whitespaces
   end # clean_whitespaces!
 
+  def blank?
+    self.empty?
+  end # blank?
+
 end # StringExt
 
 class String

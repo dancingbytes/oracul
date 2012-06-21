@@ -4,6 +4,7 @@ require 'grape'
 class Oracul::API < Grape::API
 
   format :json
+  error_format :json
 
   Dir[ './app/resources/*.rb' ].each { |f|
     instance_eval(::IO.read(f), f)

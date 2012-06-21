@@ -1,173 +1,171 @@
 # encoding: utf-8
 module Oracul
 
-  class Application
+  module Application
 
-    class << self
+    extend self
 
-      def initialize!
-        
-        options_parser.parse!(ARGV)
+    def initialize!
 
-        return start    if @options[:start] == true          
-        return stop     if @options[:stop]  == true
-        return restart  if @options[:restart]  == true
-        return console  if @options[:console]  == true
+      options_parser.parse!(ARGV)
 
-        puts options_parser.help
+      return start    if @options[:start] == true
+      return stop     if @options[:stop]  == true
+      return restart  if @options[:restart]  == true
+      return console  if @options[:console]  == true
 
-      end # initialize!
+      puts options_parser.help
 
-      private
+    end # initialize!
 
-      def start(quiet = false)
+    private
 
+    def start(quiet = false)
+
+      if running?(get_pid)
+        puts "Already running" unless quiet
+        return true
+      end
+
+      ::Oracul::Server.start(@options[:env])
+
+      res = false
+
+      10.times {
         if running?(get_pid)
-          puts "Already running" unless quiet
-          return true
-        end  
-        
-        ::Oracul::Server.start(@options[:env])
-
-        res = false
-
-        10.times {
-          if running?(get_pid)
-            res = true
-            break
-          else  
-            sleep(1)
-          end  
-        }
-
-        if res
-          puts "Process [pid #{get_pid}] was successfully started."
+          res = true
+          break
         else
-          code = $!.is_a?(::SystemExit) ? $!.status : 1
-          puts "Process failure with code #{code}."
-        end  
-        res
-
-      end # start
-
-      def stop(quiet = false)
-
-        unless running?(get_pid)
-          puts "Not running" unless quiet
-          return true
-        end  
-
-        ::File.unlink(::Oracul.pid_file) if stop_process(get_pid)
-
-        if $!.nil? || $!.is_a?(::SystemExit) && $!.success?
-          puts "Process successfully stopped."
-          return true
-        else
-          code = $!.is_a?(::SystemExit) ? $!.status : 1
-          puts "Process failure with code #{code}."
-          return false
+          sleep(1)
         end
+      }
 
-      end # stop
+      if res
+        puts "Process [pid #{get_pid}] was successfully started."
+      else
+        code = $!.is_a?(::SystemExit) ? $!.status : 1
+        puts "Process failure with code #{code}."
+      end
+      res
 
-      def restart
-        start if stop(true)
-      end # restart  
+    end # start
 
-      def console
-        ::Oracul::Console.start(@options[:env])
-      end # console
+    def stop(quiet = false)
 
-      def options_parser
+      unless running?(get_pid)
+        puts "Not running" unless quiet
+        return true
+      end
 
-        @options ||= {
-          :env => :production
-        }
+      ::File.unlink(::Oracul.pid_file) if stop_process(get_pid)
 
-        @options_parser ||= ::OptionParser.new do |opts|
+      if $!.nil? || $!.is_a?(::SystemExit) && $!.success?
+        puts "Process successfully stopped."
+        return true
+      else
+        code = $!.is_a?(::SystemExit) ? $!.status : 1
+        puts "Process failure with code #{code}."
+        return false
+      end
 
-          opts.banner = "Usage: oracul [options]"
+    end # stop
 
-          opts.separator ""
-          opts.separator "Server options:"
+    def restart
+      start if stop(true)
+    end # restart
 
-          opts.on('-r', '--start', "Start program") { |val| @options[:start] = val }
-          opts.on('-s', '--stop',  "Stop program") { |val| @options[:stop] = val }
-          opts.on('--restart',  "Restart program") { |val| @options[:restart] = val }
-          opts.on('-c', '--console',  "Start console") { |val| @options[:console] = val }
-          opts.on('-e', '--environment NAME', "Set the execution environment (prod, dev or test) (default: #{@options[:env]})") { |val| @options[:env] = val }
-          opts.on('-h', '--help',  'Display help message') { puts opts; exit }
+    def console
+      ::Oracul::Console.start(@options[:env])
+    end # console
 
-          opts.separator ""
+    def options_parser
 
-        end
+      @options ||= {
+        :env => :production
+      }
 
-      end # options_parser
+      @options_parser ||= ::OptionParser.new do |opts|
 
-      def get_pid
-        
-        return unless ::File.exists?(::Oracul.pid_file)
-        @pid ||= ::IO.read(::Oracul.pid_file).to_i
+        opts.banner = "Usage: oracul [options]"
 
-      end # get_pid 
+        opts.separator ""
+        opts.separator "Server options:"
 
-      def running?(pid = get_pid)
+        opts.on('-r', '--start', "Start program") { |val| @options[:start] = val }
+        opts.on('-s', '--stop',  "Stop program") { |val| @options[:stop] = val }
+        opts.on('--restart',  "Restart program") { |val| @options[:restart] = val }
+        opts.on('-c', '--console',  "Start console") { |val| @options[:console] = val }
+        opts.on('-e', '--environment NAME', "Set the execution environment (prod, dev or test) (default: #{@options[:env]})") { |val| @options[:env] = val }
+        opts.on('-h', '--help',  'Display help message') { puts opts; exit }
 
-        return false if pid.nil?
+        opts.separator ""
 
-        begin
-          ::Process.kill(0, pid)
-          return true
-        rescue
-          return false
-        end
+      end
 
-      end # running?
+    end # options_parser
 
-      def stop_process(pid, sig = 'QUIT')
+    def get_pid
 
-        return false if pid.nil? || @stoping
-        @stoping = true
+      return unless ::File.exists?(::Oracul.pid_file)
+      @pid ||= ::IO.read(::Oracul.pid_file).to_i
 
-        begin
-          ::Process.kill(sig, pid)
-        rescue ::Errno::ESRCH
-          @stoping = false
-          return true
-        end
+    end # get_pid
 
-        begin
+    def running?(pid = get_pid)
 
-          5.times {
+      return false if pid.nil?
 
-            if running?(pid)
-              sleep(1)
-              ::Process.kill('KILL', @pid)
-            end
+      begin
+        ::Process.kill(0, pid)
+        return true
+      rescue
+        return false
+      end
 
-          }
+    end # running?
+
+    def stop_process(pid, sig = 'QUIT')
+
+      return false if pid.nil? || @stoping
+      @stoping = true
+
+      begin
+        ::Process.kill(sig, pid)
+      rescue ::Errno::ESRCH
+        @stoping = false
+        return true
+      end
+
+      begin
+
+        5.times {
 
           if running?(pid)
-            ::STDOUT.puts "Unable to forcefully kill process with pid #{pid}."
-            ::STDOUT.flush
-            return false
-          else
-            return true
-          end  
+            sleep(1)
+            ::Process.kill('KILL', @pid)
+          end
 
-        rescue ::Errno::ESRCH
-          return true
-        rescue => e
+        }
+
+        if running?(pid)
+          ::STDOUT.puts "Unable to forcefully kill process with pid #{pid}."
+          ::STDOUT.flush
           return false
-        ensure
-          @pid = nil
-          @stoping = false
+        else
+          return true
         end
 
-      end # stop_process
+      rescue ::Errno::ESRCH
+        return true
+      rescue => e
+        return false
+      ensure
+        @pid = nil
+        @stoping = false
+      end
 
-    end # class << self
+    end # stop_process
 
   end # Application
 
-end # Oracul  
+end # Oracul

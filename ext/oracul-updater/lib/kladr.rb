@@ -1,16 +1,21 @@
 # encoding: utf-8
 module OraculUpdater
 
+  #
+  # Информацию получаем с сайта: http://www.gnivc.ru
+  # Актуальные базы лежат тут: http://www.gnivc.ru/inf_provision/classifiers_reference/kladr/
+  #
+
   class Kladr
 
-    def initialize(version = 1)
-      @version = version
+    def initialize(revision = 1)
+      @revision = revision
     end # new
 
     def clear_all
 
       puts "*** Delete all"
-      ::OraculUpdater::Area.where(:version => @version).with(safe: true).delete_all
+      ::OraculUpdater::Area.where(:revision => @revision).with(safe: true).delete_all
       puts " *** Done."
       puts
       self
@@ -53,7 +58,7 @@ module OraculUpdater
 
         area = ::OraculUpdater::Area.new({
 
-          :version => @version,
+          :revision => @revision,
 
           :name => attrs["NAME"].encode("UTF-8", "CP866"),
           :abbr => attrs["SOCR"].encode("UTF-8", "CP866"),
@@ -90,8 +95,8 @@ module OraculUpdater
 
       # Республика Чувашия
       ::OraculUpdater::Area.with(safe: true).where({
-        :version => @version,
-        :abbr => "Чувашия"
+        :revision => @revision,
+        :abbr     => "Чувашия"
       }).update_all({
 
         :abbr => "Респ",
@@ -132,7 +137,7 @@ module OraculUpdater
 
         area = ::OraculUpdater::Area.new({
 
-          :version => @version,
+          :revision => @revision,
 
           :name => attrs["NAME"].encode("UTF-8", "CP866"),
           :abbr => attrs["SOCR"].encode("UTF-8", "CP866"),
@@ -200,7 +205,7 @@ module OraculUpdater
 
         area = ::OraculUpdater::Area.new({
 
-          :version => @version,
+          :revision => @revision,
 
           :name => attrs["NAME"].encode("UTF-8", "CP866"),
           :abbr => attrs["SOCR"].encode("UTF-8", "CP866"),
@@ -259,7 +264,7 @@ module OraculUpdater
 
         ::OraculUpdater::Area.with(safe: true).where({
 
-          :version => @version,
+          :revision => @revision,
 
           :abbr     => attrs["SCNAME"].encode("UTF-8", "CP866"),
           :locality => attrs["LEVEL"].try(:to_i)
@@ -348,8 +353,8 @@ module OraculUpdater
       arr.each do |code|
 
         ::OraculUpdater::Area.with(safe: true).where({
-          :version   => @version,
-          :abbr_code => code
+          :revision   => @revision,
+          :abbr_code  => code
         }).update_all({
           :place_type => 1
         })
@@ -412,8 +417,8 @@ module OraculUpdater
       arr.each do |code|
 
         ::OraculUpdater::Area.with(safe: true).where({
-          :version   => @version,
-          :abbr_code => code
+          :revision   => @revision,
+          :abbr_code  => code
         }).update_all({
           :place_type => 2
         })
@@ -436,16 +441,16 @@ module OraculUpdater
 
       puts "*** Refresh area locations"
 
-      total   = ::OraculUpdater::Area.by_version(@version).city_only.actual.count
+      total   = ::OraculUpdater::Area.by_revision(@revision).city_only.actual.count
       counter = 0
       step    = 300
 
-      ::OraculUpdater::Area.by_version(@version).city_only.actual.long_query(step) do |area|
+      ::OraculUpdater::Area.by_revision(@revision).city_only.actual.long_query(step) do |area|
 
         city_region, city_district, city_area = nil, nil, nil
 
         city_region = ::OraculUpdater::Area.
-          by_version(@version).
+          by_revision(@revision).
           by_region(area.region_code).
           by_district(0).
           by_area(0).
@@ -471,7 +476,7 @@ module OraculUpdater
             city_district = nil
 
             city_area = ::OraculUpdater::Area.
-              by_version(@version).
+              by_revision(@revision).
               by_region(area.region_code).
               by_district(area.district_code).
               by_area(area.area_code).
@@ -490,7 +495,7 @@ module OraculUpdater
           else
 
             city_district = ::OraculUpdater::Area.
-              by_version(@version).
+              by_revision(@revision).
               by_region(area.region_code).
               by_district(area.district_code).
               by_area(0).
@@ -500,7 +505,7 @@ module OraculUpdater
               first if area.district_code > 0
 
             city_area = ::OraculUpdater::Area.
-              by_version(@version).
+              by_revision(@revision).
               by_region(area.region_code).
               by_district(area.district_code).
               by_area(area.area_code).
@@ -515,7 +520,7 @@ module OraculUpdater
 
         # Индексы улиц и домов
         req = ::OraculUpdater::Area.
-          by_version(@version).
+          by_revision(@revision).
           by_region(area.region_code).
           by_district(area.district_code).
           by_area(area.area_code).

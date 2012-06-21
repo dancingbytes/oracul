@@ -33,8 +33,8 @@ module OraculUpdater
 
     }.freeze
 
-    # Версия
-    field  :version,              :type => Integer, :default => 0
+    # Ревизия (версия)
+    field  :revision,             :type => Integer, :default => 0
 
     # Название
     field  :name
@@ -121,34 +121,21 @@ module OraculUpdater
 
     index({
 
-      outdated:     1,
-      version:      1,
-      region_code:  1,
-      district_code:1,
-      area_code:    1,
-      village_code: 1,
-      street_code:  1,
-      house_code:   1,
-
-    }, {
-      name: "area_indx"
-    })
-
-    index({
-
-      version:      1,
+      revision:     1,
       keywords:     1,
-      place_type:   1
+      place_type:   1,
+      outdated:     1
 
     }, {
-      name: "area_indx_2"
+      name: "area_indx_1"
     })
 
     index({
 
-      version:      1,
+      revision:     1,
       city_name:    1,
-      city_postcodes: 1
+      city_postcodes: 1,
+      outdated:     1
 
     }, {
       name: "area_indx_2"
@@ -156,7 +143,7 @@ module OraculUpdater
 
     index({
 
-      version:      1,
+      revision:     1,
       abbr:         1,
       locality:     1
 
@@ -166,9 +153,9 @@ module OraculUpdater
 
     index({
 
-      version:      1,
-      outdated:     1,
-      place_type:   1
+      revision:     1,
+      place_type:   1,
+      outdated:     1
 
     }, {
       name: "area_indx_4"
@@ -176,34 +163,46 @@ module OraculUpdater
 
     index({
 
-      version:      1,
+      revision:     1,
       region_code:  1,
       district_code:1,
       area_code:    1,
       village_code: 1,
       street_code:  1,
-      outdated:     1,
+      outdated:     1
 
     }, {
       name: "area_indx_5"
     })
 
-    index({ version:    1 })
-    index({ outdated:   1 })
-    index({ abbr_code:  1 })
-    index({ locality:   1 })
-    index({ postcodes:  1 })
-    index({ place_type: 1 })
+    index({
 
+      revision:     1,
+      abbr_code:    1
+
+    }, {
+      name: "area_indx_6"
+    })
+
+    index({
+
+      revision:     1,
+      abbr:         1
+
+    }, {
+      name: "area_indx_7"
+    })
+
+    index({ revision: 1 })
+    index({ outdated: 1 })
     index({ location: '2d' })
-
 
     before_save :set_keywords
 
 
-    scope :by_version, ->(version) {
-      where(:version => version.try(:to_i))
-    } # by_version
+    scope :by_revision, ->(revision) {
+      where(:revision => revision.try(:to_i))
+    } # by_revision
 
     scope :by_region, ->(code) {
       where(:region_code => code.try(:to_i))
@@ -258,6 +257,13 @@ module OraculUpdater
       house_only
 
     } # houses_for
+
+    scope :find_by_name, ->(name) {
+
+      name = (name || "").sub(/\A[а-я]+\.(\s)?/i, "").clean_whitespaces
+      where(:keywords => name.try(:downcase))
+
+    } # find_by_name
 
     def add_keywords(words)
 

@@ -178,7 +178,10 @@ module OraculUpdater
     index({
 
       revision:     1,
-      abbr_code:    1
+      region_code:  1,
+      district_code:1,
+      area_code:    1,
+      village_code: 1
 
     }, {
       name: "area_indx_6"
@@ -187,10 +190,19 @@ module OraculUpdater
     index({
 
       revision:     1,
-      abbr:         1
+      abbr_code:    1
 
     }, {
       name: "area_indx_7"
+    })
+
+    index({
+
+      revision:     1,
+      abbr:         1
+
+    }, {
+      name: "area_indx_8"
     })
 
     index({ revision: 1 })

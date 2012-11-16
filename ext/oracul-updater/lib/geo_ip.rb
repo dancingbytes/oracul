@@ -33,11 +33,7 @@ module OraculUpdater
 
       puts "*** Delete all"
 
-      # ::OraculUpdater::Area.where(:revision => @revision).with(safe: true).update_all({
-      #   :location => []
-      # })
-
-      ::OraculUpdater::Ip.where(:revision => @revision).with(safe: true).delete_all
+      ::OraculUpdater::AreaIp.where(:revision => @revision).with(safe: true).delete_all
 
       puts " *** Done."
       puts
@@ -89,7 +85,7 @@ module OraculUpdater
 
           value[:ips].each do |el|
 
-            ::OraculUpdater::Ip.create({
+            ::OraculUpdater::AreaIp.create({
               :revision => @revision,
               :lft      => el[0],
               :rgt      => el[1],
@@ -130,7 +126,7 @@ module OraculUpdater
 
         @cities[cityid] = {
           :name         => name,
-          :region       => REGION_MAP_RELATION[region] || region,
+          :region       => ::OraculUpdater::GeoIp::REGION_MAP_RELATION[region] || region,
           :district     => district,
           :coordinates  => coordinates,
           :ips          => []
@@ -165,15 +161,16 @@ module OraculUpdater
     def load_file(name, ext = "txt")
 
       file_name = "#{name}.#{ext}"
-      file = File.join(::File.dirname(__FILE__), "../", "tmp", file_name)
-      unless File.exists?(file)
+      file = ::File.join(::File.dirname(__FILE__), "../", "tmp", file_name)
+
+      unless ::File.exists?(file)
         puts "File #{file_name} not found. Skip."
       else
 
         puts "Load datas from #{file_name}..."
 
         begin
-          fl = File.new(file)
+          fl = ::File.new(file)
           fl.each { |line|
             data = line.encode("UTF-8", "WINDOWS-1251").split(/\t/)
             yield(fl.lineno, data)

@@ -53,7 +53,6 @@ class String
 
 end # String
 
-
 module CriteriaExt
 
   # Usage: Item.all.long_query {|obj| puts obj.id }

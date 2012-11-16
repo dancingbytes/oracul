@@ -1,23 +1,28 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
+require 'rubygems'
+require 'bundler/setup'
+
 require 'mongoid'
 require 'dbf'
 
-ENV["MONGOID_ENV"] = 'production'
+ENV["MONGOID_ENV"] = ENV["MONGOID_ENV"] || 'production'
+
+puts "Loading #{ENV['MONGOID_ENV']} environment..."
 
 Mongoid.load!( File.join(::File.dirname(__FILE__), "config", "mongoid.yml") )
 Mongoid.logger.level = Logger::WARN
 
 require File.expand_path('../lib/ext',      __FILE__)
 require File.expand_path('../lib/area',     __FILE__)
-require File.expand_path('../lib/ip',       __FILE__)
+require File.expand_path('../lib/area_ip',  __FILE__)
 require File.expand_path('../lib/kladr',    __FILE__)
 require File.expand_path('../lib/geo_ip',   __FILE__)
 
 puts "Create indexes..."
 
 OraculUpdater::Area.with(safe: true).create_indexes
-OraculUpdater::Ip.with(safe: true).create_indexes
+OraculUpdater::AreaIp.with(safe: true).create_indexes
 
 puts "Done."
 

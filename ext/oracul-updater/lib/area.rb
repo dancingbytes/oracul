@@ -1,4 +1,63 @@
 # encoding: utf-8
+
+=begin
+
+    # [abbr_code]
+    # Населенные пункты  (данные на март 2012 года).
+    #
+
+    103, # Город
+
+    301, # Город
+    302, # Послелок городского типа
+    303, # Рабочий поселок
+    304, # Курортный поселок
+    305, # Дачный поселок
+    306, # Сельсовет
+
+    314, # Сельское поселение
+    317, # Поселок
+
+    401, # Аал
+    402, # Аул
+    404, # Выселки
+    405, # Город
+    406, # Деревня
+    407, # Дачный поселок
+    416, # Курортный поселок
+    417, # Местечко
+    419, # Населенный пункт
+    421, # Поселок
+    423, # Поселок при станции
+    424, # Поселок городского типа
+    425, # Починок
+
+    429, # Рабочий поселок
+    430, # Село
+    431, # Слобода
+    433, # Станица
+    434, # Улус
+    435, # Хутор
+    436, # Городок
+
+    440, # Арбан
+
+    532, # Аал
+    533, # Аул
+    534, # Выселки
+    535, # Городок
+    536, # Деревня
+    544, # Местечко
+    546, # Населенный пункт
+    548, # Поселок
+    551, # Поселок при станции
+    552, # Полустанок
+    555, # Село
+    556, # Слобода
+    558  # Хутор
+
+=end
+
 module OraculUpdater
 
   class Area
@@ -36,18 +95,6 @@ module OraculUpdater
     # Ревизия (версия)
     field  :revision,             :type => Integer, :default => 0
 
-    # Название
-    field  :name
-
-    # Поисковые слова
-    field  :keywords,             :type => Array
-
-    # Аббревиатура
-    field  :abbr
-
-    # Полное обозначение
-    field  :abbr_full
-
     # Код обозначения (тип объекта)
     field  :abbr_code,            :type => Integer, :default => 0 # size: 3
 
@@ -81,7 +128,7 @@ module OraculUpdater
     field  :house_code,           :type => Integer, :default => 0 # size: 4
 
     # Индексы
-    field  :postcodes,            :type => Array
+    field  :postcodes,            :type => Array,   :default => []
 
     # Отметка актуальности данных
     field  :outdated,             :type => Boolean, :default => false
@@ -98,27 +145,95 @@ module OraculUpdater
     # Уровень объекта
     field  :locality,             :type => Integer, :default => 0 # size => 1
 
+    # Название
+    field  :name,                 :type => String
+
+    # Поисковые слова
+    field  :keywords,             :type => Array
+
+    # Аббревиатура
+    field  :abbr,                 :type => String
+
+    # Полное обозначение
+    field  :abbr_full,            :type => String
+
     # Название региона
-    field  :region
+    field  :region,               :type => String
 
     # Название района
-    field  :district
+    field  :district,             :type => String
 
     # Название области
-    field  :area
+    field  :area,                 :type => String
 
+=begin
     # Название города/деревни (для улицы/дома)
     # Используется для быстрого поиска
-    field  :city_name
+    field  :city_name,            :type => String
 
     # Почтовые коды города/деревни (для улицы/дома)
     # Используется для быстрого поиска
     field  :city_postcodes,       :type => Array
+=end
 
     # Географические координаты (Latitude (Широта) / Longitude (Долгота))
     field  :location,             :type => Array
 
+    index(
 
+      {
+        revision:       1,
+        region_code:    1,
+        district_code:  1,
+        area_code:      1,
+        village_code:   1,
+        street_code:    1,
+        house_code:     1,
+        outdated:       1
+
+      }, {
+        name:       "area_indx",
+        background: true
+      }
+
+    )
+
+    index(
+
+      {
+        revision:     1,
+        keywords:     1,
+        place_type:   1
+      }, {
+        name:       "area_indx_2",
+        background: true
+
+      }
+
+    )
+
+    index(
+
+      {
+        revision:     1,
+        abbr:         1,
+        locality:     1
+      }, {
+        name:       "area_indx_3",
+        background: true
+      }
+
+    )
+
+    index({ outdated:   1 }, { background: true })
+    index({ abbr_code:  1 }, { background: true })
+    index({ locality:   1 }, { background: true })
+    index({ postcodes:  1 }, { background: true })
+    index({ place_type: 1 }, { background: true })
+    index({ revision:   1 }, { background: true })
+    index({ location:   '2d' }, { background: true })
+
+=begin
     index({
 
       revision:     1,
@@ -208,9 +323,20 @@ module OraculUpdater
     index({ revision: 1 })
     index({ outdated: 1 })
     index({ location: '2d' })
+=end
 
     before_save :set_keywords
 
+    attr_protected  :keywords,
+                    :postcodes,
+                    :region,
+                    :district,
+                    :area,
+                    :outdated
+
+    ##
+    ## Scopes
+    ##
 
     scope :by_revision, ->(revision) {
       where(:revision => revision.try(:to_i))
@@ -270,12 +396,213 @@ module OraculUpdater
 
     } # houses_for
 
-    scope :find_by_name, ->(name) {
+    scope :by_postcode, ->(code) {
 
-      name = (name || "").sub(/\A[а-я]+\.(\s)?/i, "").clean_whitespaces
-      where(:keywords => name.try(:downcase))
+      code = code.try(:to_i)
+      code = [] if code == 0 || code.nil?
+      where(:postcodes => code)
+
+    } # by_postcode
+
+    scope :find_by_name, ->(name, partial = false) {
+
+      name = (name || "").sub(/\A[а-я]+\.(\s)?/i, "").clean_whitespaces.downcase
+
+      if partial
+        arr = name.split(/\s/)
+        arr.delete_if { |el| el.length < 3 }
+      else
+        arr = [name]
+      end
+
+      asc(:locality).actual.where(:keywords.in => arr)
 
     } # find_by_name
+
+
+    ##
+    ## Методы класса
+    ##
+
+    class << self
+
+      def city_exist?(name = nil, code = nil)
+        !get_city_by(name, code).nil?
+      end # city_exist?
+
+      def get_city_by(name = nil, code = nil)
+
+        return if name.blank? || code.blank?
+
+        search_city(name)
+          .any_of({ :abbr_code => 103 }, { :locality.gt => 1 })
+          .by_postcode(code)
+          .first
+
+      end # get_city_by
+
+      def search(name)
+
+        (city_name, region, _) = name.split(",")
+
+        if (city_name =~ /\d{6}/).nil?
+
+          request = find_by_name(city_name)
+          region  = region.clean_whitespaces || ""
+
+          unless region.blank?
+            request = request.any_of({:region => /#{region}/i}, {:district => /#{region}/i})
+          end
+
+        else
+          request = by_postcode(city_name)
+        end
+
+        request
+
+      end # search
+
+      def search_city(name)
+        search(name).city_only
+      end # search_city
+
+      def search_street(name)
+        find_by_name(name, false).street_only
+      end # search_street
+
+      def has_city_streets?(city, postcode)
+        !!get_city_by(city, postcode).try(:has_streets?)
+      end # has_city_streets?
+
+      def has_city_street?(city, postcode, street)
+        !!get_city_by(city, postcode).try(:has_street?, street)
+      end # has_city_street?
+
+    end # class << self
+
+    ##
+    ## Методы экземпляра
+    ##
+
+    def search_street(name)
+      self.class.streets_for(self).find_by_name(name, false)
+    end # search_street
+
+    def postcode
+      self.postcodes.first
+    end # postcode
+
+    def has_street?(name)
+      self.search_street(name).count > 0
+    end # has_street?
+
+    def has_streets?
+      self.streets.count > 0
+    end # has_streets?
+
+    def streets
+      self.class.streets_for(self)
+    end # streets
+
+    def zone(delimiter = ", ")
+
+      return @zone unless @zone.nil?
+
+      arr = []
+
+      arr << self.region    unless self.region.blank?
+      arr << self.district  unless self.district.blank?
+      arr << self.area      unless self.area.blank?
+
+      @zone = arr.join(delimiter)
+
+    end # zone
+
+    # Определяем "код" объекта.
+    #
+    # Начинаем обход кодов домов и поднимаемся до кодов регионов. Как только
+    # встречается код отличный от 0 то, используем его в качестве искомого значения.
+    #
+    def code
+
+      return @code unless @code.nil?
+
+      # Дом
+      if (@code = self.house_code) == 0
+
+        # Улица
+        if (@code = self.street_code) == 0
+
+          # Деревня/поселок/мелкий городок
+          if (@code = self.village_code) == 0
+
+            # Район/крупный город
+            if (@code = self.area_code) == 0
+
+              # Область
+              if (@code = self.district_code) == 0
+
+                # Регион
+                @code = self.region_code
+
+              end #
+
+            end #
+
+          end #
+
+        end #
+
+      end #
+
+      @code
+
+    end # code
+
+    #
+    # Определяем "код" объекта (путь до объекта).
+    #
+    # Начинаем обход кодов домов и поднимаемся до кодов регионов. Последние нули отбрасываем.
+    #
+    def full_code(delimiter = '/')
+
+      return @full_code unless @full_code.nil?
+
+      arr = []
+
+      # Дом
+      arr << self.house_code
+
+      # Улица
+      arr << self.street_code
+
+      # Деревня/поселок/мелкий городок
+      arr << self.village_code
+
+      # Район/крупный город
+      arr << self.area_code
+
+      # Область
+      arr << self.district_code
+
+      # Регион
+      arr << self.region_code
+
+      # Промежуточный массив
+      arr_1 = arr.clone
+
+      # Удаляем первые нули
+      arr.each do |el|
+        el == 0 ? arr_1.shift : break;
+      end # each_index
+
+      # Добавляем начальный 0 (так как у нас есть главнй объект "Россия" с кодом 0)
+      arr_1 << 0
+
+      # Разворачиваем массив
+      @full_code = arr_1.reverse.join(delimiter)
+
+    end # full_code
 
     def add_keywords(words)
 

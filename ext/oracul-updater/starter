@@ -28,6 +28,7 @@ puts "Done."
 
 revision = 1
 
+=begin
 puts
 puts "KLADR convertion..."
 kladr = ::OraculUpdater::Kladr.new(revision)
@@ -43,8 +44,8 @@ kladr.
 
 puts
 puts "Done."
+=end
 
-=begin
 puts
 puts "Geo and ips convertion..."
 geoip = ::OraculUpdater::GeoIp.new(revision)
@@ -54,4 +55,3 @@ geoip.
 
 puts
 puts "Done."
-=end

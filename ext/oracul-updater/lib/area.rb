@@ -202,6 +202,7 @@ module OraculUpdater
 
       {
         revision:     1,
+        outdated:     1,
         keywords:     1,
         place_type:   1
       }, {
@@ -225,6 +226,25 @@ module OraculUpdater
 
     )
 
+    index(
+
+      {
+        revision:       1,
+        region_code:    1,
+        district_code:  1,
+        area_code:      1,
+        village_code:   1,
+        outdated:       1,
+        place_type:     1,
+        keywords:       1
+
+      }, {
+        name:       "area_indx_4",
+        background: true
+      }
+
+    )
+
     index({ outdated:   1 }, { background: true })
     index({ abbr_code:  1 }, { background: true })
     index({ locality:   1 }, { background: true })
@@ -232,98 +252,6 @@ module OraculUpdater
     index({ place_type: 1 }, { background: true })
     index({ revision:   1 }, { background: true })
     index({ location:   '2d' }, { background: true })
-
-=begin
-    index({
-
-      revision:     1,
-      keywords:     1,
-      place_type:   1,
-      outdated:     1
-
-    }, {
-      name: "area_indx_1"
-    })
-
-    index({
-
-      revision:     1,
-      city_name:    1,
-      city_postcodes: 1,
-      outdated:     1
-
-    }, {
-      name: "area_indx_2"
-    })
-
-    index({
-
-      revision:     1,
-      abbr:         1,
-      locality:     1
-
-    }, {
-      name: "area_indx_3"
-    })
-
-    index({
-
-      revision:     1,
-      place_type:   1,
-      outdated:     1
-
-    }, {
-      name: "area_indx_4"
-    })
-
-    index({
-
-      revision:     1,
-      region_code:  1,
-      district_code:1,
-      area_code:    1,
-      village_code: 1,
-      street_code:  1,
-      outdated:     1
-
-    }, {
-      name: "area_indx_5"
-    })
-
-    index({
-
-      revision:     1,
-      region_code:  1,
-      district_code:1,
-      area_code:    1,
-      village_code: 1
-
-    }, {
-      name: "area_indx_6"
-    })
-
-    index({
-
-      revision:     1,
-      abbr_code:    1
-
-    }, {
-      name: "area_indx_7"
-    })
-
-    index({
-
-      revision:     1,
-      abbr:         1
-
-    }, {
-      name: "area_indx_8"
-    })
-
-    index({ revision: 1 })
-    index({ outdated: 1 })
-    index({ location: '2d' })
-=end
 
     before_save :set_keywords
 

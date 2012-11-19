@@ -26,10 +26,21 @@ module OraculUpdater
         lft: 1,
         rgt: 1,
         area_id: 1
-      },
+      }, {
+        name:   "area_ip_indx",
+        unique: true
+      }
+    )
 
-      :name   => "area_ip_indx",
-      :unique => true
+    index(
+
+      {
+        revision: 1,
+        lft: 1,
+        rgt: 1
+      }, {
+        name: "area_ip_indx2"
+      }
 
     )
 

@@ -28,7 +28,6 @@ puts "Done."
 
 revision = 1
 
-=begin
 puts
 puts "KLADR convertion..."
 kladr = ::OraculUpdater::Kladr.new(revision)
@@ -44,7 +43,6 @@ kladr.
 
 puts
 puts "Done."
-=end
 
 puts
 puts "Geo and ips convertion..."

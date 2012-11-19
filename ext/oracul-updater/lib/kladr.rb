@@ -76,7 +76,7 @@ module OraculUpdater
         area.outdated  = (code[11, 2].to_i != 0)
         area.postcodes = [postcode] if postcode > 0
 
-        if result = area.save
+        if result = area.with(safe: true).save
           success += 1
         else
           error += 1
@@ -154,7 +154,7 @@ module OraculUpdater
         area.outdated  = (code[15, 2].to_i != 0)
         area.postcodes = [postcode] if postcode > 0
 
-        if result = area.save
+        if result = area.with(safe: true).save
           success += 1
         else
           error += 1
@@ -224,7 +224,7 @@ module OraculUpdater
         area.postcodes  = [postcode] if postcode > 0
         area.place_type = 3
 
-        if result = area.save
+        if result = area.with(safe: true).save
           success += 1
         else
           error += 1
@@ -537,20 +537,9 @@ module OraculUpdater
             :region     => region_str,
             :district   => (city_district.nil? ? nil : "#{city_district.name} #{city_district.abbr_full.downcase}"),
             :area       => (city_area.nil? ? nil : city_area.name),
-            :postcodes  => postcodes#,
-#            :city_name  => area.name,
-#            :city_postcodes => postcodes
+            :postcodes  => postcodes
 
           })
-
-=begin
-        # Для улиц и домов данного населенного пункта сохраняем информацию
-        # о названии населенного пункта и его почтовых индексов
-        req.update_all({
-          :city_name      => area.name,
-          :city_postcodes => postcodes
-        })
-=end
 
         # Для населенных пунктов в keywords добавим данные о районе (для более точного поиска)
         area.add_keywords(area.district)

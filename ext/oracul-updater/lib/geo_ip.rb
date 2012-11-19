@@ -87,8 +87,8 @@ module OraculUpdater
 
             ::OraculUpdater::AreaIp.create({
               :revision => @revision,
-              :lft      => el[0],
-              :rgt      => el[1],
+              :lft      => el[:lft],
+              :rgt      => el[:rgt],
               :area_id  => city.id
             })
 
@@ -98,7 +98,6 @@ module OraculUpdater
 
           error += 1
           notfound = " [Not found #{value[:name]} (#{value[:region]}) -> #{value[:district]}]"
-          puts "#{notfound}"
 
         end
 
